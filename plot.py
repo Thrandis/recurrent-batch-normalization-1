@@ -23,37 +23,82 @@ def parse_log(file_):
     return data
 
 
-def plot(logs, what='error_rate'):
+def plot(logs, what='error_rate', title='Sequential pMNIST'):
     plt.figure()
-    plt.title('MNIST')
+    plt.title(title)
     colors = ['b', 'r', 'g', 'k', 'y', 'c', 'm', 'b', 'r', 'g', 'k', 'y', 'c', 'm']
     for i, log in enumerate(logs):
-        name = os.path.basename(log)
+        if isinstance(log, tuple):
+            name = log[1]
+            log = log[0]
+        else:
+            name = os.path.basename(log)
         data = parse_log(log)
         #plt.subplot(211)
         if what == 'error_rate':
-            plt.plot(data['train_error_rate'][:], c=colors[i], ls=':', lw=2)
-            plt.plot(data['valid_error_rate'][:], c=colors[i], lw=2, label=name)
-            print len(data['train_error_rate'][:])
-            print len(data['valid_error_rate'][:])
+            if len(data['train_error_rate']):
+                train = data['train_error_rate']
+                valid = data['valid_error_rate']
+            else:
+                print 'training'
+                train = data['train_training_error_rate']
+                valid = data['valid_training_error_rate']
+            plt.plot(train[:], c=colors[i], ls=':', lw=2)
+            plt.plot(valid[:], c=colors[i], lw=2, label=name)
+            print len(train)
+            print len(valid)
             plt.ylabel('Misc Rate') 
-        elif what == 'cost':
-            plt.plot(data['train_sequence_cost'][:], c=colors[i], ls=':', lw=2)
-            #plt.plot(data['dev_sequence_cost'][1:-1], c=colors[i], ls='--', lw=2, label=name)
-            plt.plot(data['pop_dev_sequence_cost'][:], c=colors[i], lw=2, label=name)
-            print len(data['train_sequence_cost'][:-1])
-            print len(data['dev_sequence_cost'][1:-1]) 
-            plt.ylabel('Cost')
+        elif what == 'cross_entropy':
+            if len(data['train_cross_entropy']):
+                train = data['train_cross_entropy']
+                valid = data['valid_cross_entropy']
+            else:
+                train = data['train_training_cross_entropy']
+                valid = data['valid_training_cross_entropy']
+            plt.plot(train[:], c=colors[i], ls=':', lw=2)
+            plt.plot(valid[:], c=colors[i], lw=2, label=name)
+            print len(train)
+            print len(valid)
+            plt.ylabel('Cross Entropy') 
         plt.legend()
         
-    #plt.ylim([0, 1])
-    #plt.xlim([0, 100])
+    plt.ylim([0.8, 1.8])
+    plt.xlim([0, 20])
     plt.grid()
     plt.xlabel('Epochs')
     plt.show()
     #plt.close('all')
 
 
-logs = ['experiments/sequentialmnist-lstm/log',
-        'experiments/sequentialmnist-normlstm/log']
-plot(logs)
+logs = ['experiments/results/pmnist/baseline/baseline',
+        'experiments/results/pmnist/bn/bn',
+        #'experiments/results/pmnist/norm/full_norm_input_gamma=01.txt',
+        #'experiments/results/pmnist/norm/norm_tanh_sqrt_full_norm_input_gamma=01.txt',
+        'experiments/results/pmnist/norm/full_norm_input_gamma=1.txt',
+        'experiments/results/pmnist/norm/norm_tanh_sqrt_full_norm_input_gamma=1.txt',
+       ]
+#plot(logs)
+
+logs = ['experiments/results/ptb/baseline/baseline',
+        'experiments/results/ptb/bn/bn',
+        'experiments/results/ptb/norm/rnn_baseline.txt',
+        #'experiments/results/ptb/norm/rnn_norm_sqrt_gamma=01.txt',
+        #'experiments/results/ptb/norm/rnn_norm_sqrt_gamma=08.txt',
+        'experiments/results/ptb/norm/rnn_norm_sqrt_gamma=1.txt',
+        #'experiments/results/ptb/norm/rnn_norm_sqrt_norm_tanh_gamma=01.txt',
+        'experiments/results/ptb/norm/rnn_norm_sqrt_norm_tanh_gamma=08.txt',
+        'experiments/results/ptb/norm/rnn_norm_sqrt_norm_tanh_gamma=1.txt',
+       ]
+#plot(logs, 'cross_entropy')
+
+logs = ['experiments/results/ptb/baseline/baseline',
+        'experiments/results/ptb/bn/bn',
+        'experiments/results/ptb/ln/ln',
+        #'experiments/results/ptb/norm/rnn_baseline.txt',
+        #'experiments/results/ptb/norm/rnn_norm_sqrt_gamma=1.txt',
+        #'experiments/results/ptb/norm/lstm_norm_tanh_gamma=01.txt',
+        #'experiments/results/ptb/norm/lstm_norm_tanh_c_gamma=01.txt',
+        #'experiments/results/ptb/norm/lstm_norm_tanh_c_gamma=01_lr=002.txt',
+        ('experiments/results/ptb/norm/lstm_norm_tanh_c_no_force_l2_gamma=01.txt', 'NormProp'),
+       ]
+plot(logs, 'cross_entropy', 'PenntreeBank')
